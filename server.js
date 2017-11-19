@@ -34,6 +34,33 @@ app.get('/setup', (req, res) => {
   })
 })
 
+// 验证机制
+api.post('/authenticate', (req, res) => {
+  User.findOne({
+    name: req.body.name
+  }, (err, user) => {
+    if (err) throw err
+
+    if (!user) {
+      res.json({success: false, message: 'Authenticate failed. User not found.'})
+    } else if (user) {
+      if (user.password !== req.body.password) {
+        res.json({success: false, message: 'Authenticate failed. Wrong password.'})
+      } else {
+        let token = jwt.sign(user, app.get('secret'), {
+          expiresIn: 60 * 60 * 24
+        })
+
+        res.json({
+          success: true,
+          message: 'Enjoy your token',
+          token: token
+        })
+      }
+    }
+  })
+})
+
 api.get('/', (req, res) => {
   res.json({message: 'Welcome to the APIs'})
 })
